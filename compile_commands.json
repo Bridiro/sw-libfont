@@ -1,0 +1,34 @@
+[
+  {
+    "arguments": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/gcc",
+      "-c",
+      "-Iinc",
+      "-Wall",
+      "-Wextra",
+      "-I/opt/homebrew/Cellar/sdl2/2.30.10/include/SDL2",
+      "-o",
+      "build/font_data.o",
+      "src/font_data.c"
+    ],
+    "directory": "/Users/alebridi/programmazione/e-agle/sw-lib-font",
+    "file": "/Users/alebridi/programmazione/e-agle/sw-lib-font/src/font_data.c",
+    "output": "/Users/alebridi/programmazione/e-agle/sw-lib-font/build/font_data.o"
+  },
+  {
+    "arguments": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/gcc",
+      "-c",
+      "-Iinc",
+      "-Wall",
+      "-Wextra",
+      "-I/opt/homebrew/Cellar/sdl2/2.30.10/include/SDL2",
+      "-o",
+      "build/main.o",
+      "src/main.c"
+    ],
+    "directory": "/Users/alebridi/programmazione/e-agle/sw-lib-font",
+    "file": "/Users/alebridi/programmazione/e-agle/sw-lib-font/src/main.c",
+    "output": "/Users/alebridi/programmazione/e-agle/sw-lib-font/build/main.o"
+  }
+]

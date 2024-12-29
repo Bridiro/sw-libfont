@@ -1,0 +1,6 @@
+app.dSYM
+app
+generated/sdf_fonts
+generated/bitmaps
+.cache
+build
