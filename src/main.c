@@ -81,9 +81,9 @@ int main() {
         SDL_RenderClear(renderer);
 
         // Renderizzazione del testo
-        render_text("Ciao SDL", 50, 50, 0.5,  renderer);
-        render_text("Funzia", 50, 100, 1, renderer);
-        render_text("Maybe", 50, 160, 1.5, renderer);
+        render_text("Ciao, SDL.", 50, 50, 0.5,  renderer);
+        render_text("Funzia.", 50, 100, 1, renderer);
+        render_text("Maybe.", 50, 160, 1.5, renderer);
 
         // Presenta il rendering sullo schermo
         SDL_RenderPresent(renderer);

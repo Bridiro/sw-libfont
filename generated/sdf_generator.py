@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 import freetype
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 import re
@@ -11,6 +11,44 @@ def extract_number(filename):
     match = re.search(r'(\d+)', filename)  # Cerca un numero nel nome del file
     return int(match.group(1)) if match else 0
 
+def generate_bitmaps_fixed(font_path, size, output_folder):
+    """
+    Genera bitmap per ogni carattere del font specificato, rispettando
+    baseline, ascendente e discendente, senza tagliare i caratteri.
+    """
+    # Carica il font
+    font = ImageFont.truetype(font_path, size)
+    
+    # Crea la cartella di output se non esiste
+    os.makedirs(output_folder, exist_ok=True)
+    
+    # Ottieni le metriche globali del font
+    ascent, descent = font.getmetrics()
+    total_height = ascent + descent  # Altezza totale del font
+
+    # Processa i caratteri dal codice ASCII 32 (spazio) al 126 (~)
+    for char_code in range(32, 127):
+        char = chr(char_code)
+
+        # Ottieni la bounding box precisa del carattere
+        bbox = font.getbbox(char, anchor="ls")  # "ls" = left baseline
+        char_width = bbox[2] - bbox[0]
+        char_height = bbox[3] - bbox[1]
+
+        # Crea un'immagine vuota con altezza totale del font
+        image = Image.new("L", (char_width, total_height), 0)
+        draw = ImageDraw.Draw(image)
+
+        # Calcola la posizione di disegno rispetto alla baseline
+        x_offset = -bbox[0]  # Assicura che il carattere inizi da 0 orizzontalmente
+        y_offset = ascent  # Baseline posizionata correttamente
+        draw.text((x_offset, y_offset), char, fill=255, font=font, anchor="ls")
+
+        # Salva l'immagine del carattere
+        output_path = os.path.join(output_folder, f"char_{char_code}.png")
+        image.save(output_path)
+        print(f"Bitmap generata per '{char}' ({char_code}): {output_path}")
+        
 def generate_bitmaps(font_path, size, output_folder):
     def render_bitmap(char, font_path, size=32):
         face = freetype.Face(font_path)
@@ -109,7 +147,7 @@ def main():
     args = parser.parse_args()
 
     print("Bitmap generation...")
-    generate_bitmaps(args.font, args.size, args.bitmap_folder)
+    generate_bitmaps_fixed(args.font, args.size, args.bitmap_folder)
 
     print("SDF generation...")
     generate_sdf(args.bitmap_folder, args.sdf_folder)
