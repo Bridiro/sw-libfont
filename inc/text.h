@@ -34,6 +34,11 @@ enum FontAlign
  */
 void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size);
 
+/**
+ * @brief Calcaulate the lenght on the text in pixel
+ */
+uint16_t text_lenght(char *text, float size);
+
 #if UTILITIES
 /**
  * @brief Utility to extract 8 bit alpha value from ARGB8888 format

@@ -62,6 +62,15 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size)
 
 void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size)
 {
+    if (align == CENTER)
+    {
+        uint16_t len = text_lenght(text, size);
+        x -= len / 2;
+    } else if (align == RIGHT)
+    {
+        uint16_t len = text_lenght(text, size);
+        x -= len;
+    }
     while (*text)
     {
         int char_code = *text++;
@@ -72,6 +81,20 @@ void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_
             x += glyph->width * size;
         }
     }
+}
+
+uint16_t text_lenght(char *text, float size)
+{
+    float tot = 0;
+    while (*text)
+    {
+        int char_code = *text++;
+        if (char_code >= 32 && char_code <= 126)
+        {
+            tot += (float) (&glyphs[char_code - 32])->width * size;
+        }
+    }
+    return (uint16_t) tot;
 }
 
 #if UTILITIES
