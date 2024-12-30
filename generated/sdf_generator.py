@@ -8,47 +8,35 @@ from scipy.ndimage import distance_transform_edt
 import re
 
 def extract_number(filename):
-    match = re.search(r'(\d+)', filename)  # Cerca un numero nel nome del file
+    match = re.search(r'(\d+)', filename)
     return int(match.group(1)) if match else 0
 
 def generate_bitmaps_fixed(font_path, size, output_folder):
-    """
-    Genera bitmap per ogni carattere del font specificato, rispettando
-    baseline, ascendente e discendente, senza tagliare i caratteri.
-    """
-    # Carica il font
     font = ImageFont.truetype(font_path, size)
     
-    # Crea la cartella di output se non esiste
     os.makedirs(output_folder, exist_ok=True)
     
-    # Ottieni le metriche globali del font
     ascent, descent = font.getmetrics()
-    total_height = ascent + descent  # Altezza totale del font
+    total_height = ascent + descent
 
-    # Processa i caratteri dal codice ASCII 32 (spazio) al 126 (~)
     for char_code in range(32, 127):
         char = chr(char_code)
 
-        # Ottieni la bounding box precisa del carattere
         bbox = font.getbbox(char, anchor="ls")  # "ls" = left baseline
         char_width = bbox[2] - bbox[0]
         char_height = bbox[3] - bbox[1]
 
-        # Crea un'immagine vuota con altezza totale del font
         image = Image.new("L", (char_width, total_height), 0)
         draw = ImageDraw.Draw(image)
 
-        # Calcola la posizione di disegno rispetto alla baseline
-        x_offset = -bbox[0]  # Assicura che il carattere inizi da 0 orizzontalmente
-        y_offset = ascent  # Baseline posizionata correttamente
+        x_offset = -bbox[0]
+        y_offset = ascent
         draw.text((x_offset, y_offset), char, fill=255, font=font, anchor="ls")
 
-        # Salva l'immagine del carattere
         output_path = os.path.join(output_folder, f"char_{char_code}.png")
         image.save(output_path)
-        print(f"Bitmap generata per '{char}' ({char_code}): {output_path}")
         
+
 def generate_bitmaps(font_path, size, output_folder):
     def render_bitmap(char, font_path, size=32):
         face = freetype.Face(font_path)
@@ -56,22 +44,19 @@ def generate_bitmaps(font_path, size, output_folder):
         face.load_char(char)
         bitmap = face.glyph.bitmap
 
-        # Verifica larghezza/altezza
         width, height = bitmap.width, bitmap.rows
-        if width == 0 or height == 0:  # Gestione caratteri vuoti (es. spazio)
+        if width == 0 or height == 0:
             print(f"Carattere '{char}' non ha bitmap (probabilmente spazio).")
-            return np.zeros((size // 4, size // 4), dtype=np.uint8)  # Aggiungi un'area vuota predefinita
+            return np.zeros((size // 4, size // 4), dtype=np.uint8)
 
-        # Converti in numpy array
         array = np.array(bitmap.buffer, dtype=np.uint8).reshape(height, width)
         return array
 
     os.makedirs(output_folder, exist_ok=True)
 
-    for char_code in range(32, 127):  # Caratteri stampabili ASCII
+    for char_code in range(32, 127):
         bitmap = render_bitmap(char_code, font_path, size)
         image = Image.fromarray(bitmap)
-        # Disegna il carattere
         image.save(os.path.join(output_folder, f"char_{char_code}.png"))
 
 def generate_sdf(bitmap_folder, output_folder):
@@ -92,11 +77,11 @@ def generate_sdf(bitmap_folder, output_folder):
             sdf_image = Image.fromarray(sdf)
             sdf_image.save(os.path.join(output_folder, file_name.replace("char_", "sdf_")))
 
-# Funzione per convertire gli SDF in file C
+
 def generate_c_files(sdf_folder, output_c_folder, output_inc_folder):
     os.makedirs(output_c_folder, exist_ok=True)
     os.makedirs(output_inc_folder, exist_ok=True)
-    c_file_path = os.path.join(output_c_folder, "font_data.c")
+    c_file_path = os.path.join(output_c_folder, "font.c")
     h_file_path = os.path.join(output_inc_folder, "font.h")
 
     with open(c_file_path, "w") as c_file, open(h_file_path, "w") as h_file:
@@ -135,7 +120,7 @@ def generate_c_files(sdf_folder, output_c_folder, output_inc_folder):
         h_file.write("extern const Glyph glyphs[];\n\n")
         h_file.write("#endif // FONT_H\n")
 
-# Parser degli argomenti da riga di comando
+
 def main():
     parser = argparse.ArgumentParser(description="Generate bitmap, SDF file, C file and Header file.")
     parser.add_argument("--font", required=True, help="TTF file.")

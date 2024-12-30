@@ -1,70 +1,61 @@
 #include <SDL.h>
-#include <stdio.h>
 #include <string.h>
 #include "SDL_events.h"
-#include "font.h"  // Includi il file generato con i dati del font
+#include "SDL_render.h"
+#include "text.h"
 
 #define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_HEIGHT 480
 
-// Funzione per renderizzare un singolo carattere
-void render_glyph(const Glyph *glyph, int x, int y, float scale, SDL_Renderer *renderer) {
-    for (int j = 0; j < glyph->height * scale; j++) {
-        for (int i = 0; i < glyph->width * scale; i++) {
-            // Calcola le coordinate scalate nella bitmap SDF originale
-            int sdf_x = i / scale;
-            int sdf_y = j / scale;
+typedef struct
+{
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+} SDLContext;
 
-            // Ottieni il valore SDF
-            int sdf_value = glyph->sdf[sdf_y * glyph->width + sdf_x];
-
-            // Controlla se il pixel è visibile
-            if (sdf_value > 110) {  // Soglia di visibilità
-                SDL_SetRenderDrawColor(renderer, sdf_value, sdf_value, sdf_value, 255);  // Colore in scala di grigi
-                SDL_RenderDrawPoint(renderer, x + i, y + j);  // Disegna il punto scalato
-            }
-        }
-    }
-}
-
-// Funzione per renderizzare un testo
-void render_text(const char *text, int x, int y, float scale, SDL_Renderer *renderer) {
-    while (*text) {
-        int char_code = *text++;
-        if (char_code >= 32 && char_code <= 126) {
-            const Glyph *glyph = &glyphs[char_code - 32];
-            render_glyph(glyph, x, y, scale, renderer);
-            x += glyph->width * scale;  // Sposta il cursore per il prossimo carattere in base allo scaling
-        }
-    }
+void draw_pix_fun(int x, int y, uint32_t col)
+{
+    SDL_SetRenderDrawColor(SDL_GetRenderer(SDL_GetWindowFromID(1)), col >> 16 & 0xff, col >> 8 & 0xff, col & 0xff, col >> 24 & 0xff);
+    SDL_RenderDrawPoint(SDL_GetRenderer(SDL_GetWindowFromID(1)), x, y);
 }
 
 int main() {
-    // Inizializzazione di SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL_Init Error: %s\n", SDL_GetError());
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
+        SDL_Log("SDL_Init Error: %s", SDL_GetError());
         return 1;
     }
 
-    // Creazione della finestra SDL
-    SDL_Window *window = SDL_CreateWindow("SDL Font Rendering",
-                                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                          WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-    if (window == NULL) {
-        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
+    SDLContext sdl_ctx = {
+        .window = SDL_CreateWindow("Text Demo",
+                                   SDL_WINDOWPOS_CENTERED,
+                                   SDL_WINDOWPOS_CENTERED,
+                                   WINDOW_WIDTH,
+                                   WINDOW_HEIGHT,
+                                   SDL_WINDOW_SHOWN),
+        .renderer = NULL};
+
+    if (!sdl_ctx.window)
+    {
+        SDL_Log("SDL_CreateWindow Error: %s", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
-    // Creazione del renderer
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL) {
-        printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
+    sdl_ctx.renderer = SDL_CreateRenderer(sdl_ctx.window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
+
+    if (!sdl_ctx.renderer)
+    {
+        SDL_Log("SDL_CreateRenderer Error: %s", SDL_GetError());
+        SDL_DestroyWindow(sdl_ctx.window);
         SDL_Quit();
         return 1;
     }
+    SDL_SetRenderDrawBlendMode(SDL_GetRenderer(SDL_GetWindowFromID(1)), SDL_BLENDMODE_BLEND);
 
+    draw_pixel = draw_pix_fun;
+    
     int running = 1;
     SDL_Event event;
     while (running)
@@ -76,25 +67,24 @@ int main() {
                 running = 0;
             }
         }
+        SDL_SetRenderDrawColor(sdl_ctx.renderer, 0, 0, 0, 255);
+        SDL_RenderClear(sdl_ctx.renderer);
         // Pulizia della finestra (sfondo bianco)
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-
         // Renderizzazione del testo
-        render_text("Ciao, SDL.", 50, 50, 0.5,  renderer);
-        render_text("Funzia.", 50, 100, 1, renderer);
-        render_text("Maybe.", 50, 160, 1.5, renderer);
+        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.5);
+        draw_text(50, 100, LEFT, "Funziona", 0xffffffff, 2);
+        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 3);
 
         // Presenta il rendering sullo schermo
-        SDL_RenderPresent(renderer);
+        SDL_RenderPresent(sdl_ctx.renderer);
 
         // Attendere un po' per vedere il risultato
-        SDL_Delay(200);
+        SDL_Delay(16);
     }
 
     // Pulizia e chiusura
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(sdl_ctx.renderer);
+    SDL_DestroyWindow(sdl_ctx.window);
     SDL_Quit();
 
     return 0;
