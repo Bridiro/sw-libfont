@@ -1,6 +1,5 @@
 #include "text.h"
 #include "font.h"
-#include <stdio.h>
 
 float _get_sdf_value_bilinear(const Glyph *glyph, float x, float y)
 {
@@ -48,7 +47,7 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size)
 
             float sdf_value = _get_sdf_value_bilinear(glyph, sdf_x, sdf_y);
             
-            float alpha = _smoothstep(0.2, 0.75, sdf_value / 255.0f);
+            float alpha = _smoothstep(0.2, 0.80, sdf_value / 255.0f);
             if (alpha > 0.0f)
             {
                 uint8_t to_pass = (uint8_t)(alpha * 255);
