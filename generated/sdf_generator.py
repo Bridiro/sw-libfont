@@ -85,40 +85,46 @@ def generate_c_files(sdf_folder, output_c_folder, output_inc_folder):
     h_file_path = os.path.join(output_inc_folder, "font.h")
 
     with open(c_file_path, "w") as c_file, open(h_file_path, "w") as h_file:
-        c_file.write("#include <stdint.h>\n")
-        c_file.write("#include \"font.h\"\n\n")
+        # Header file content
         h_file.write("#ifndef FONT_H\n#define FONT_H\n\n#include <stdint.h>\n\n")
+        h_file.write("typedef struct {\n")
+        h_file.write("    uint32_t offset;\n")
+        h_file.write("    uint8_t width;\n    uint8_t height;\n} Glyph;\n\n")
+        h_file.write("extern const uint8_t sdf_data[];\n")
+        h_file.write("extern const Glyph glyphs[];\n\n")
+        h_file.write("#endif // FONT_H\n")
 
+        # C file content
+        c_file.write("#include \"font.h\"\n\n")
+
+        sdf_data = []
         glyph_metadata = []
+        current_offset = 0
 
         for file_name in sorted(os.listdir(sdf_folder), key=extract_number):
             if file_name.endswith(".png"):
-                char_code = int(file_name.split("_")[1].split(".")[0])
-                array_name = f"glyph_{char_code}"
                 image = Image.open(os.path.join(sdf_folder, file_name)).convert("L")
                 width, height = image.size
                 pixels = list(image.getdata())
 
-                c_file.write(f"static const uint8_t {array_name}[{width} * {height}] = {{\n")
-                for i, p in enumerate(pixels):
-                    c_file.write(f"{p}, ")
-                    if (i + 1) % width == 0:
-                        c_file.write("\n")
-                c_file.write("};\n\n")
+                # Append SDF data
+                sdf_data.extend(pixels)
+                glyph_metadata.append((current_offset, width, height))
+                current_offset += width * height
 
-                glyph_metadata.append((char_code, array_name, width, height))
+        # Write SDF data as a single array
+        c_file.write("const uint8_t sdf_data[] = {\n")
+        for i, value in enumerate(sdf_data):
+            c_file.write(f"{value}, ")
+            if (i + 1) % 12 == 0:  # Wrap lines for readability
+                c_file.write("\n")
+        c_file.write("};\n\n")
 
-        c_file.write("\nconst Glyph glyphs[] = {\n")
-
-        for char_code, array_name, width, height in glyph_metadata:
-            c_file.write(f"    {{ {array_name}, {width}, {height} }}, // Char \"{chr(char_code)}\"\n")
-
+        # Write glyph metadata
+        c_file.write("const Glyph glyphs[] = {\n")
+        for offset, width, height in glyph_metadata:
+            c_file.write(f"    {{ {offset}, {width}, {height} }},\n")
         c_file.write("};\n")
-
-        h_file.write("typedef struct {\n")
-        h_file.write("    const uint8_t *sdf;\n    uint8_t width;\n    uint8_t height;\n} Glyph;\n\n")
-        h_file.write("extern const Glyph glyphs[];\n\n")
-        h_file.write("#endif // FONT_H\n")
 
 
 def main():

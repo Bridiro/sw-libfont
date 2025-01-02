@@ -3,6 +3,8 @@
 
 float _get_sdf_value_bilinear(const Glyph *glyph, float x, float y)
 {
+    const uint8_t *sdf = &sdf_data[glyph->offset];
+
     int x0 = (int)x;
     int y0 = (int)y;
     int x1 = x0 + 1;
@@ -13,10 +15,10 @@ float _get_sdf_value_bilinear(const Glyph *glyph, float x, float y)
     x1 = x1 < 0 ? 0 : (x1 >= glyph->width ? glyph->width - 1 : x1);
     y1 = y1 < 0 ? 0 : (y1 >= glyph->height ? glyph->height - 1 : y1);
 
-    float q00 = glyph->sdf[y0 * glyph->width + x0];
-    float q01 = glyph->sdf[y0 * glyph->width + x1];
-    float q10 = glyph->sdf[y1 * glyph->width + x0];
-    float q11 = glyph->sdf[y1 * glyph->width + x1];
+    float q00 = sdf[y0 * glyph->width + x0];
+    float q01 = sdf[y0 * glyph->width + x1];
+    float q10 = sdf[y1 * glyph->width + x0];
+    float q11 = sdf[y1 * glyph->width + x1];
 
     float tx = x - x0;
     float ty = y - y0;

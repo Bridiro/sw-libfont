@@ -2,6 +2,7 @@
 #include <string.h>
 #include "SDL_events.h"
 #include "SDL_render.h"
+#include "font.h"
 #include "text.h"
 
 #define WINDOW_WIDTH 800
@@ -20,6 +21,12 @@ void draw_pix_fun(int x, int y, uint32_t col)
 }
 
 int main() {
+    int size=0;
+    for (int i=0; i<94; i++) {
+        size += glyphs[i].height * glyphs[i].width;
+    }
+    printf("Size of font: %d\n", size);
+
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
         SDL_Log("SDL_Init Error: %s", SDL_GetError());
