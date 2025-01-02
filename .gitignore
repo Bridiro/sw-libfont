@@ -5,3 +5,4 @@ generated/sdf_fonts
 generated/bitmaps
 .cache
 build
+.DS_Store
