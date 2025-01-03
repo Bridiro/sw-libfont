@@ -61,6 +61,63 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size)
     }
 }
 
+
+void _render_glyph_rle(const Glyph *glyph, int x, int y, uint32_t color, float size)
+{
+    const uint8_t *data = &sdf_data[glyph->offset];
+    uint16_t remaining_size = glyph->size;
+
+    int glyph_width = glyph->width;
+    int glyph_height = glyph->height;
+
+    int current_x = 0;
+    int current_y = 0;
+
+    while (remaining_size > 0 && current_y < glyph_height)
+    {
+        // Decode the value and run length
+        uint8_t value = *data++;
+        uint8_t count = *data++;
+        remaining_size -= 2;
+
+        for (uint8_t k = 0; k < count; ++k)
+        {
+            // Render the decompressed pixel
+            if (value > 0) // Only render non-transparent pixels
+            {
+                int scaled_x = (int)(x + current_x * size);
+                int scaled_y = (int)(y + current_y * size);
+
+                for (int j = 0; j < size; ++j)
+                {
+                    for (int i = 0; i < size; ++i)
+                    {
+                        // Calculate alpha using value and blend it with the color
+                        float alpha = _smoothstep(0.2, 0.80, value / 255.0f);
+                        if (alpha > 0.0f)
+                        {
+                            uint8_t to_pass = (uint8_t)(alpha * 255);
+                            uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)to_pass << 24);
+                            draw_pixel(scaled_x + i, scaled_y + j, blended_color);
+                        }
+                    }
+                }
+            }
+
+            // Advance to the next pixel
+            current_x++;
+            if (current_x >= glyph_width)
+            {
+                current_x = 0;
+                current_y++;
+                if (current_y >= glyph_height)
+                    break;
+            }
+        }
+    }
+}
+
+
 void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size)
 {
     if (align == CENTER)
@@ -78,7 +135,7 @@ void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_
         if (char_code >= 32 && char_code <= 126)
         {
             const Glyph *glyph = &glyphs[char_code - 32];
-            _render_glyph(glyph, x, y, color, size);
+            _render_glyph_rle(glyph, x, y, color, size);
             x += glyph->width * size;
         }
     }

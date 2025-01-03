@@ -22,10 +22,13 @@ void draw_pix_fun(int x, int y, uint32_t col)
 
 int main() {
     int size=0;
+    int memory_occupied = 0;
     for (int i=0; i<94; i++) {
         size += glyphs[i].height * glyphs[i].width;
+        memory_occupied += glyphs[i].size;
     }
     printf("Size of font: %d\n", size);
+    printf("Memory occupied: %d bytes\n", memory_occupied);
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -78,9 +81,9 @@ int main() {
         SDL_RenderClear(sdl_ctx.renderer);
         // Pulizia della finestra (sfondo bianco)
         // Renderizzazione del testo
-        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.5);
-        draw_text(50, 100, LEFT, "Funziona", 0xffffffff, 2);
-        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 3);
+        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.3);
+        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 1);
+        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 1.5);
 
         // Presenta il rendering sullo schermo
         SDL_RenderPresent(sdl_ctx.renderer);
