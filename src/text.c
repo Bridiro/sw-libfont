@@ -1,68 +1,25 @@
+/**
+ * @file text.c
+ * @date 2024-12-30
+ * @author Alessandro Bridi [ale.bridi15@gmail.com]
+ *
+ * @brief Text rendering functions
+ */
+
 #include "text.h"
 #include "font.h"
 
-float _get_sdf_value_bilinear(const Glyph *glyph, float x, float y)
-{
-    const uint8_t *sdf = &sdf_data[glyph->offset];
-
-    int x0 = (int)x;
-    int y0 = (int)y;
-    int x1 = x0 + 1;
-    int y1 = y0 + 1;
-
-    x0 = x0 < 0 ? 0 : (x0 >= glyph->width ? glyph->width - 1 : x0);
-    y0 = y0 < 0 ? 0 : (y0 >= glyph->height ? glyph->height - 1 : y0);
-    x1 = x1 < 0 ? 0 : (x1 >= glyph->width ? glyph->width - 1 : x1);
-    y1 = y1 < 0 ? 0 : (y1 >= glyph->height ? glyph->height - 1 : y1);
-
-    float q00 = sdf[y0 * glyph->width + x0];
-    float q01 = sdf[y0 * glyph->width + x1];
-    float q10 = sdf[y1 * glyph->width + x0];
-    float q11 = sdf[y1 * glyph->width + x1];
-
-    float tx = x - x0;
-    float ty = y - y0;
-
-    float value = (1 - tx) * (1 - ty) * q00 +
-                  tx * (1 - ty) * q01 +
-                  (1 - tx) * ty * q10 +
-                  tx * ty * q11;
-
-    return value;
-}
-
 float _smoothstep(float edge0, float edge1, float x)
 {
+    // Basically, if x is under edge0, return 0
+    // if it's over edge1, return 1, else return x
     x = (x - edge0) / (edge1 - edge0);
     x = x < 0 ? 0 : (x > 1 ? 1 : x);
     return x * x * (3 - 2 * x);
 }
 
+
 void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size)
-{
-    for (int j = 0; j < glyph->height * size; j++)
-    {
-        for (int i = 0; i < glyph->width * size; i++)
-        {
-            int sdf_x = i / size;
-            int sdf_y = j / size;
-
-            float sdf_value = _get_sdf_value_bilinear(glyph, sdf_x, sdf_y);
-            
-            float alpha = _smoothstep(0.2, 0.80, sdf_value / 255.0f);
-            if (alpha > 0.0f)
-            {
-                uint8_t to_pass = (uint8_t)(alpha * 255);
-                color &= 0x00ffffff;
-                color |= ((uint32_t) to_pass << 24);
-                draw_pixel(x + i, y + j, color);
-            }
-        }
-    }
-}
-
-
-void _render_glyph_rle(const Glyph *glyph, int x, int y, uint32_t color, float size)
 {
     const uint8_t *data = &sdf_data[glyph->offset];
     uint16_t remaining_size = glyph->size;
@@ -122,10 +79,12 @@ void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_
 {
     if (align == CENTER)
     {
+        // To center it just shift x half the text lenght back
         uint16_t len = text_lenght(text, size);
         x -= len / 2;
     } else if (align == RIGHT)
     {
+        // To align it to the right, just shift x the text lenght back
         uint16_t len = text_lenght(text, size);
         x -= len;
     }
@@ -134,8 +93,9 @@ void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_
         int char_code = *text++;
         if (char_code >= 32 && char_code <= 126)
         {
+            // Get glyph, print it and then move x for next character
             const Glyph *glyph = &glyphs[char_code - 32];
-            _render_glyph_rle(glyph, x, y, color, size);
+            _render_glyph(glyph, x, y, color, size);
             x += glyph->width * size;
         }
     }
@@ -149,6 +109,7 @@ uint16_t text_lenght(char *text, float size)
         int char_code = *text++;
         if (char_code >= 32 && char_code <= 126)
         {
+            // Get width from every glyph descriptor, multiply it with size and add to tot
             tot += (float) (&glyphs[char_code - 32])->width * size;
         }
     }

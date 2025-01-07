@@ -1,3 +1,11 @@
+/**
+ * @file text.h
+ * @date 2024-12-30
+ * @author Alessandro Bridi [ale.bridi15@gmail.com]
+ *
+ * @brief Text rendering functions
+ */
+
 #ifndef TEXT_H
 #define TEXT_H
 
