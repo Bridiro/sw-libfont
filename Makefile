@@ -18,7 +18,7 @@ INC_DIR = inc
 OBJ_DIR = build
 
 # Sources and objects
-SOURCES = $(wildcard $(SRC_DIR)/*.c)
+SOURCES = $(wildcard $(SRC_DIR)/*.c test/*c)
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
 
 # Default build
