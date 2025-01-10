@@ -6,3 +6,4 @@ generated/bitmaps
 .cache
 build
 .DS_Store
+**/font.*
