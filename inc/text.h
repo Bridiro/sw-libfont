@@ -13,7 +13,10 @@
 
 #define UTILITIES 0
 
-void (*draw_pixel)(int x, int y, uint32_t color);
+/**
+ * @brief Callback used to draw pixel
+ */
+typedef void (*draw_pixel_callback_t)(int x, int y, uint32_t color);
 
 /**
  * @brief Represents the alignment of the rendering of the text
@@ -40,7 +43,7 @@ enum FontAlign
  * @param color ARGB color value (alpha is ignored)
  * @param size Scale value
  */
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size);
+void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size, draw_pixel_callback_t pixel_callback);
 
 /**
  * @brief Calcaulate the lenght on the text in pixel

@@ -64,8 +64,6 @@ int main() {
     }
     SDL_SetRenderDrawBlendMode(SDL_GetRenderer(SDL_GetWindowFromID(1)), SDL_BLENDMODE_BLEND);
 
-    draw_pixel = draw_pix_fun;
-    
     int running = 1;
     SDL_Event event;
     while (running)
@@ -81,9 +79,9 @@ int main() {
         SDL_RenderClear(sdl_ctx.renderer);
         // Pulizia della finestra (sfondo bianco)
         // Renderizzazione del testo
-        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.3);
-        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 1);
-        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 1.5);
+        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.3, draw_pix_fun);
+        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 1, draw_pix_fun);
+        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 1.5, draw_pix_fun);
 
         // Presenta il rendering sullo schermo
         SDL_RenderPresent(sdl_ctx.renderer);

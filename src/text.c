@@ -19,7 +19,7 @@ float _smoothstep(float edge0, float edge1, float x)
 }
 
 
-void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size)
+void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size, draw_pixel_callback_t pixel_callback)
 {
     const uint8_t *data = &sdf_data[glyph->offset];
     uint16_t remaining_size = glyph->size;
@@ -55,7 +55,7 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size)
                         {
                             uint8_t to_pass = (uint8_t)(alpha * 255);
                             uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)to_pass << 24);
-                            draw_pixel(scaled_x + i, scaled_y + j, blended_color);
+                            pixel_callback(scaled_x + i, scaled_y + j, blended_color);
                         }
                     }
                 }
@@ -75,7 +75,7 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size)
 }
 
 
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size)
+void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size, draw_pixel_callback_t pixel_callback)
 {
     if (align == CENTER)
     {
@@ -95,7 +95,7 @@ void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_
         {
             // Get glyph, print it and then move x for next character
             const Glyph *glyph = &glyphs[char_code - 32];
-            _render_glyph(glyph, x, y, color, size);
+            _render_glyph(glyph, x, y, color, size, pixel_callback);
             x += glyph->width * size;
         }
     }
