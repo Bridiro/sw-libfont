@@ -9,15 +9,6 @@
 #include "text.h"
 #include "font.h"
 
-float _smoothstep(float edge0, float edge1, float x)
-{
-    // Basically, if x is under edge0, return 0
-    // if it's over edge1, return 1, else return x
-    x = (x - edge0) / (edge1 - edge0);
-    x = x < 0 ? 0 : (x > 1 ? 1 : x);
-    return x * x * (3 - 2 * x);
-}
-
 
 void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size, draw_pixel_callback_t pixel_callback)
 {
@@ -49,12 +40,9 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size,
                 {
                     for (int i = 0; i < size; ++i)
                     {
-                        // Calculate alpha using value and blend it with the color
-                        float alpha = _smoothstep(0.2, 0.80, value / 255.0f);
-                        if (alpha > 0.0f)
+                        if (value > 0)
                         {
-                            uint8_t to_pass = (uint8_t)(alpha * 255);
-                            uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)to_pass << 24);
+                            uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
                             pixel_callback(scaled_x + i, scaled_y + j, blended_color);
                         }
                     }

@@ -1,7 +1,5 @@
 import os
-import sys
 import argparse
-import freetype
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from scipy.ndimage import distance_transform_edt
@@ -36,14 +34,20 @@ def generate_bitmaps_fixed(font_path, size, output_folder):
         image.save(output_path)
         
 
-def generate_sdf(bitmap_folder, output_folder):
+def generate_sdf(bitmap_folder, output_folder, edge_down, edge_up):
     os.makedirs(output_folder, exist_ok=True)
+
+    def smoothstep(edge0, edge1, x):
+        t = np.clip((x - edge0) / (edge1 - edge0), 0, 1)
+        return t * t * (3 - 2 * t)
+
 
     def compute_sdf(bitmap):
         inside = distance_transform_edt(bitmap)
         outside = distance_transform_edt(1 - bitmap)
         sdf = inside - outside
-        normalized_sdf = np.clip((sdf + 3) / 6, 0, 1) * 255
+        normalized_sdf = np.clip((sdf + 3) / 6, 0, 1)
+        normalized_sdf = smoothstep(edge_down, edge_up, normalized_sdf) * 255
         return normalized_sdf.astype(np.uint8)
 
     for file_name in os.listdir(bitmap_folder):
@@ -121,6 +125,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate bitmap, SDF file, C file and Header file.")
     parser.add_argument("--font", required=True, help="TTF file.")
     parser.add_argument("--size", type=int, default=64, help="Size of bitmaps (default: 64).")
+    parser.add_argument("--edge_down", default=0.35, help="Lower edge of the smoothstep function.")
+    parser.add_argument("--edge_up", default=0.75, help="Higher edge of the smoothstep function.")
     parser.add_argument("--bitmap_folder", default="bitmaps", help="Folder which contains the generated bitmaps.")
     parser.add_argument("--sdf_folder", default="sdf_fonts", help="Folder which contains the generated SDF.")
     parser.add_argument("--c_folder", default="../src", help="Folder which contains the C file.")
@@ -131,7 +137,7 @@ def main():
     generate_bitmaps_fixed(args.font, args.size, args.bitmap_folder)
 
     print("SDF generation...")
-    generate_sdf(args.bitmap_folder, args.sdf_folder)
+    generate_sdf(args.bitmap_folder, args.sdf_folder, float(args.edge_down), float(args.edge_up))
 
     print("C files generation...")
     generate_c_files(args.sdf_folder, args.c_folder, args.inc_folder)
