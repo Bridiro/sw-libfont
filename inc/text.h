@@ -26,8 +26,7 @@ typedef void (*draw_pixel_callback_t)(int x, int y, uint32_t color);
  *     - CENTER means that the text rendering will be centered to Coords.x
  *     - RIGHT means that the text rendering will end at Coords.x
  */
-enum FontAlign
-{
+enum FontAlign {
     LEFT,
     CENTER,
     RIGHT
