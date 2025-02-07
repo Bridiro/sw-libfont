@@ -10,6 +10,35 @@
 #include "font.h"
 
 
+void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, int glyph_width, int glyph_height, int *current_x, int *current_y, uint32_t color, draw_pixel_callback_t pixel_callback) {
+    for (uint8_t k = 0; k < count; ++k) {
+        // Render the decompressed pixel
+        if (value > 0) { // Only render non-transparent pixels
+            int scaled_x = (int)(x + *current_x * size);
+            int scaled_y = (int)(y + *current_y * size);
+
+            for (int j = 0; j < size; ++j) {
+                for (int i = 0; i < size; ++i) {
+                    if (value > 0) {
+                        uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
+                        pixel_callback(scaled_x + i, scaled_y + j, blended_color);
+                    }
+                }
+            }
+        }
+
+        // Advance to the next pixel
+        (*current_x)++;
+        if (*current_x >= glyph_width) {
+            *current_x = 0;
+            (*current_y)++;
+            if (*current_y >= glyph_height)
+                break;
+        }
+    }
+}
+
+
 void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size, draw_pixel_callback_t pixel_callback) {
     const uint8_t *data = &sdf_data[glyph->offset];
     uint16_t remaining_size = glyph->size;
@@ -22,35 +51,15 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size,
 
     while (remaining_size > 0 && current_y < glyph_height) {
         // Decode the value and run length
-        uint8_t value = *data++;
-        uint8_t count = *data++;
+        uint8_t value_raw = *data++;
+        uint8_t value1 = ((value_raw >> 4) & 0xF) * 16;
+        uint8_t value2 = (value_raw & 0xF) * 16;
+        uint8_t count1 = *data++;
+        uint8_t count2 = *data++;
         remaining_size -= 2;
 
-        for (uint8_t k = 0; k < count; ++k) {
-            // Render the decompressed pixel
-            if (value > 0) { // Only render non-transparent pixels
-                int scaled_x = (int)(x + current_x * size);
-                int scaled_y = (int)(y + current_y * size);
-
-                for (int j = 0; j < size; ++j) {
-                    for (int i = 0; i < size; ++i) {
-                        if (value > 0) {
-                            uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
-                            pixel_callback(scaled_x + i, scaled_y + j, blended_color);
-                        }
-                    }
-                }
-            }
-
-            // Advance to the next pixel
-            current_x++;
-            if (current_x >= glyph_width) {
-                current_x = 0;
-                current_y++;
-                if (current_y >= glyph_height)
-                    break;
-            }
-        }
+        _draw_rle_series(count1, value1, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, pixel_callback);
+        _draw_rle_series(count2, value2, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, pixel_callback);
     }
 }
 

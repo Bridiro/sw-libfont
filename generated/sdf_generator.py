@@ -59,16 +59,32 @@ def generate_sdf(bitmap_folder, output_folder, edge_down, edge_up):
             sdf_image.save(os.path.join(output_folder, file_name.replace("char_", "sdf_")))
 
 
-def compress_rle(data):
+def compress_rle_4bit_paired(data):
     compressed = []
-    count = 1
-    for i in range(1, len(data)):
-        if data[i] == data[i - 1] and count < 255:
-            count += 1
+    i = 0
+
+    while i < len(data):
+        sdf1 = data[i] // 16
+        count1 = 1
+        i += 1
+
+        while i < len(data) and data[i] // 16 == sdf1 and count1 < 255:
+            count1 += 1
+            i += 1
+
+        if i < len(data):
+            sdf2 = data[i] // 16
+            count2 = 1
+            i += 1
+
+            while i < len(data) and data[i] // 16 == sdf2 and count2 < 255:
+                count2 += 1
+                i += 1
         else:
-            compressed.append((data[i - 1], count))
-            count = 1
-    compressed.append((data[-1], count))  # Append the last run
+            count2 = 0
+
+        compressed.append(((sdf1 << 4) | sdf2, count1, count2))
+
     return compressed
 
 
@@ -100,7 +116,7 @@ def generate_c_files(sdf_folder, output_c_folder, output_inc_folder):
                 image = Image.open(os.path.join(sdf_folder, file_name)).convert("L")
                 width, height = image.size
                 pixels = list(image.getdata())
-                compressed = compress_rle(pixels)
+                compressed = compress_rle_4bit_paired(pixels)
                 offset = len(sdf_data)
 
                 # Append SDF data
