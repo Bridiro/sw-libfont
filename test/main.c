@@ -3,7 +3,7 @@
 #include "SDL_events.h"
 #include "SDL_render.h"
 #include "font.h"
-#include "text.h"
+#include "libfont.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 480

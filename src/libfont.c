@@ -1,12 +1,12 @@
 /**
- * @file text.c
+ * @file libfont.c
  * @date 2024-12-30
  * @author Alessandro Bridi [ale.bridi15@gmail.com]
  *
  * @brief Text rendering functions
  */
 
-#include "text.h"
+#include "libfont.h"
 #include "font.h"
 
 
