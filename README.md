@@ -17,12 +17,13 @@ scaling.
 ```
 sw-lib-font/
 ├── src/
-│   ├── text.c             # Utilities and font render function
-│   ├── font.c             # Font SDF data (generated)
-│   └── main.c             # Demo application to display capabilities
+│   ├── libfont.c          # Utilities and font render function
+│   └── font.c             # Font SDF data (generated)
 ├── inc/
-│   ├── text.h             # Header file for text.c
+│   ├── libfont.h          # Header file for text.c
 │   └── font.h             # Definitions for font creation (generated)
+├── test/
+│   └── main.c             # Demo application to display capabilities
 ├── generated/
 │   ├── sdf_generator.py   # SDF Font generator
 │   ├── font.ttf           # Font to use in the library
@@ -35,18 +36,12 @@ sw-lib-font/
 ## Usage
 
 1. **Include the Header:**
-Include `text.h` in your source file to access the functions to use.
+Include `libfont.h` in your source file to access the functions to use.
 ```c
-#include "text.h"
+#include "libfont.h"
 ```
 
-2. **Initialize Graphical API:**
-The library require access to a function used to draw a pixel (the user defines it).
-```c
-draw_pixel = <your_draw_pixel_function>
-```
-
-3. **Render Text:**
+2. **Render Text:**
 Setup and render whichever text you want to.
 ```c
 uint16_t x = 100;                // x position in framebuffer
@@ -56,7 +51,7 @@ char *text = "Hello, World!";    // text to render
 uint32_t color = 0xffffffff;     // which color to use to draw the text
 float size = 1.0f;               // scale factor
 
-draw_text(x, y, align, text, color, size);
+draw_text(x, y, align, text, color, size, draw_pixel_callback);
 ```
 
 ## Compilation
