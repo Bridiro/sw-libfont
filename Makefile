@@ -3,7 +3,7 @@ OS = $(shell uname -s)
 
 # Flags and compiler
 CC = gcc
-CFLAGS = -Iinc -Wall -Wextra
+CFLAGS = -Iinclude -Wall -Wextra
 DEBUG_CFLAGS = "-g"
 LDFLAGS = -lSDL2 -lm 
 
@@ -14,7 +14,7 @@ endif
 
 # Directory
 SRC_DIR = src
-INC_DIR = inc
+INC_DIR = include
 OBJ_DIR = build
 
 # Sources and objects

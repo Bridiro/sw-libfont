@@ -1,0 +1,21 @@
+{
+  "name": "sw-libfont",
+  "version": "1.0.0",
+  "description": "A lightweight and blazingly fast library to handle font drawing.",
+  "keywords": "font, mcu, stm, glyphs",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/Bridiro/sw-libfont.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Alessandro Bridi",
+      "email": "ale.bridi15@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "frameworks": "*",
+  "platforms": "*"
+}

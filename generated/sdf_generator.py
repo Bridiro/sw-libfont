@@ -146,7 +146,7 @@ def main():
     parser.add_argument("--bitmap_folder", default="bitmaps", help="Folder which contains the generated bitmaps.")
     parser.add_argument("--sdf_folder", default="sdf_fonts", help="Folder which contains the generated SDF.")
     parser.add_argument("--c_folder", default="../src", help="Folder which contains the C file.")
-    parser.add_argument("--inc_folder", default="../inc", help="Folder which contains the include file.")
+    parser.add_argument("--inc_folder", default="../include", help="Folder which contains the include file.")
     args = parser.parse_args()
 
     print("Bitmap generation...")
