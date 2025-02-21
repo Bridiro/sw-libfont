@@ -9,25 +9,35 @@
 #include "libfont.h"
 #include "font.h"
 
-
 void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, int glyph_width, int glyph_height, int *current_x, int *current_y, uint32_t color, draw_pixel_callback_t pixel_callback) {
-    for (uint8_t k = 0; k < count; ++k) {
-        // Render the decompressed pixel
-        if (value > 0) { // Only render non-transparent pixels
-            int scaled_x = (int)(x + *current_x * size);
-            int scaled_y = (int)(y + *current_y * size);
+    uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
 
-            for (int j = 0; j < size; ++j) {
-                for (int i = 0; i < size; ++i) {
-                    if (value > 0) {
-                        uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
-                        pixel_callback(scaled_x + i, scaled_y + j, blended_color);
+    for (uint8_t k = 0; k < count; ++k) {
+        int scaled_x = (int)(x + *current_x * size);
+        int scaled_y = (int)(y + *current_y * size);
+        int next_x = (int)(x + (*current_x + 1) * size);
+        int next_y = (int)(y + (*current_y + 1) * size);
+
+        if (value > 0) { // Pixel is visible
+            if (size >= 1.0f) {
+                // upscaling: draw a block
+                for (int j = scaled_y; j < next_y; ++j) {
+                    for (int i = scaled_x; i < next_x; ++i) {
+                        pixel_callback(i, j, blended_color);
                     }
+                }
+            } else {
+                // downscaling: draw only a representative pixel
+                static int last_x = -1, last_y = -1;
+                if (scaled_x != last_x || scaled_y != last_y) {
+                    pixel_callback(scaled_x, scaled_y, blended_color);
+                    last_x = scaled_x;
+                    last_y = scaled_y;
                 }
             }
         }
 
-        // Advance to the next pixel
+        // move current coordinates
         (*current_x)++;
         if (*current_x >= glyph_width) {
             *current_x = 0;
@@ -37,7 +47,6 @@ void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, in
         }
     }
 }
-
 
 void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size, draw_pixel_callback_t pixel_callback) {
     const uint8_t *data = &sdf_data[glyph->offset];
@@ -62,7 +71,6 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size,
         _draw_rle_series(count2, value2, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, pixel_callback);
     }
 }
-
 
 void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size, draw_pixel_callback_t pixel_callback) {
     if (align == CENTER) {
