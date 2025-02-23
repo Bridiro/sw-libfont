@@ -30,6 +30,7 @@ sw-lib-font/
 │   ├── bitmaps/           # Folder to contain bitmaps used
 │   └── sdf_fonts/         # Folder to contain generated SDFs
 ├── build/                 # Compiled object files
+├── library.json           # File used by PlatformIO to identify library
 └── app                    # Final compiled application
 ```
 
@@ -51,7 +52,7 @@ char *text = "Hello, World!";    // text to render
 uint32_t color = 0xffffffff;     // which color to use to draw the text
 float size = 1.0f;               // scale factor
 
-draw_text(x, y, align, text, color, size, draw_pixel_callback);
+draw_text(x, y, align, text, color, size, draw_line_callback);
 ```
 
 ## Compilation

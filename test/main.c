@@ -13,9 +13,11 @@ typedef struct {
     SDL_Renderer *renderer;
 } SDLContext;
 
-void draw_pix_fun(int x, int y, uint32_t col) {
+void draw_line_fun(int x, int y, int lenght, uint32_t col) {
     SDL_SetRenderDrawColor(SDL_GetRenderer(SDL_GetWindowFromID(1)), col >> 16 & 0xff, col >> 8 & 0xff, col & 0xff, col >> 24 & 0xff);
-    SDL_RenderDrawPoint(SDL_GetRenderer(SDL_GetWindowFromID(1)), x, y);
+    for (int i=0; i<lenght; i++) {
+        SDL_RenderDrawPoint(SDL_GetRenderer(SDL_GetWindowFromID(1)), x+i, y);
+    }
 }
 
 int main() {
@@ -72,9 +74,9 @@ int main() {
         SDL_RenderClear(sdl_ctx.renderer);
         // Pulizia della finestra (sfondo bianco)
         // Renderizzazione del testo
-        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.3, draw_pix_fun);
-        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 1, draw_pix_fun);
-        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 1.5, draw_pix_fun);
+        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.3, draw_line_fun);
+        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 1, draw_line_fun);
+        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 1.5, draw_line_fun);
 
         // Presenta il rendering sullo schermo
         SDL_RenderPresent(sdl_ctx.renderer);

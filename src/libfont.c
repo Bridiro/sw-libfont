@@ -9,46 +9,56 @@
 #include "libfont.h"
 #include "font.h"
 
-void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, int glyph_width, int glyph_height, int *current_x, int *current_y, uint32_t color, draw_pixel_callback_t pixel_callback) {
+void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, int glyph_width, int glyph_height, int *current_x, int *current_y, uint32_t color, draw_line_callback_t line_callback) {
+    if (value == 0) { 
+        *current_x += count;
+        while (*current_x >= glyph_width) {
+            *current_x -= glyph_width;
+            (*current_y)++;
+        }
+        return;
+    }
+
     uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
 
-    for (uint8_t k = 0; k < count; ++k) {
-        int scaled_x = (int)(x + *current_x * size);
-        int scaled_y = (int)(y + *current_y * size);
-        int next_x = (int)(x + (*current_x + 1) * size);
-        int next_y = (int)(y + (*current_y + 1) * size);
+    while (count > 0) {
+        float scaled_x = x + (*current_x * size);
+        float scaled_y = y + (*current_y * size);
+        float next_scaled_x = x + ((*current_x + 1) * size);
+        float next_scaled_y = y + ((*current_y + 1) * size);
 
-        if (value > 0) { // Pixel is visible
-            if (size >= 1.0f) {
-                // upscaling: draw a block
-                for (int j = scaled_y; j < next_y; ++j) {
-                    for (int i = scaled_x; i < next_x; ++i) {
-                        pixel_callback(i, j, blended_color);
-                    }
-                }
-            } else {
-                // downscaling: draw only a representative pixel
-                static int last_x = -1, last_y = -1;
-                if (scaled_x != last_x || scaled_y != last_y) {
-                    pixel_callback(scaled_x, scaled_y, blended_color);
-                    last_x = scaled_x;
-                    last_y = scaled_y;
-                }
+        int draw_x = (int)scaled_x;
+        int draw_y = (int)scaled_y;
+        int draw_width = (int)(next_scaled_x - scaled_x + 0.5f);  // Avoid holes when upscaling too much
+        int draw_height = (int)(next_scaled_y - scaled_y + 0.5f); // Avoid holes when upscaling too much
+
+        if (size >= 1.0f) {
+            for (int j = 0; j < draw_height; ++j) {
+                line_callback(draw_x, draw_y + j, draw_width, blended_color);
+            }
+        } else {
+            static int last_x = -1, last_y = -1;
+            if (draw_x != last_x || draw_y != last_y) {
+                line_callback(draw_x, draw_y, 1, blended_color);
+                last_x = draw_x;
+                last_y = draw_y;
             }
         }
 
-        // move current coordinates
-        (*current_x)++;
-        if (*current_x >= glyph_width) {
-            *current_x = 0;
+        // Go on with position
+        *current_x += 1;
+        count--;
+
+        while (*current_x >= glyph_width) {
+            *current_x -= glyph_width;
             (*current_y)++;
             if (*current_y >= glyph_height)
-                break;
+                return;
         }
     }
 }
 
-void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size, draw_pixel_callback_t pixel_callback) {
+void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size, draw_line_callback_t line_callback) {
     const uint8_t *data = &sdf_data[glyph->offset];
     uint16_t remaining_size = glyph->size;
 
@@ -67,12 +77,12 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size,
         uint8_t count2 = *data++;
         remaining_size -= 2;
 
-        _draw_rle_series(count1, value1, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, pixel_callback);
-        _draw_rle_series(count2, value2, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, pixel_callback);
+        _draw_rle_series(count1, value1, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, line_callback);
+        _draw_rle_series(count2, value2, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, line_callback);
     }
 }
 
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size, draw_pixel_callback_t pixel_callback) {
+void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size, draw_line_callback_t line_callback) {
     if (align == CENTER) {
         // To center it just shift x half the text lenght back
         uint16_t len = text_lenght(text, size);
@@ -87,7 +97,7 @@ void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_
         if (char_code >= 32 && char_code <= 126) {
             // Get glyph, print it and then move x for next character
             const Glyph *glyph = &glyphs[char_code - 32];
-            _render_glyph(glyph, x, y, color, size, pixel_callback);
+            _render_glyph(glyph, x, y, color, size, line_callback);
             x += glyph->width * size;
         }
     }
