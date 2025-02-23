@@ -35,14 +35,16 @@ sw-lib-font/
 ```
 
 ## Usage
+1. **Generate Font:**
+Go inside the `generated/` folder and run the python script passing all the needed parameters. Run `python sdf_generator.py --help` for more informations.
 
-1. **Include the Header:**
+2. **Include the Header:**
 Include `libfont.h` in your source file to access the functions to use.
 ```c
 #include "libfont.h"
 ```
 
-2. **Render Text:**
+3. **Render Text:**
 Setup and render whichever text you want to.
 ```c
 uint16_t x = 100;                // x position in framebuffer
