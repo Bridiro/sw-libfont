@@ -9,8 +9,11 @@
 #include "libfont.h"
 #include "font.h"
 
-void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, int glyph_width, int glyph_height, int *current_x, int *current_y, uint32_t color, draw_line_callback_t line_callback) {
-    if (value == 0) { 
+void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, 
+                      int glyph_width, int glyph_height, 
+                      int *current_x, int *current_y, uint32_t color, 
+                      draw_line_callback_t line_callback) {
+    if (value == 0) {
         *current_x += count;
         while (*current_x >= glyph_width) {
             *current_x -= glyph_width;
@@ -21,40 +24,33 @@ void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, in
 
     uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
 
-    while (count > 0) {
-        float scaled_x = x + (*current_x * size);
-        float scaled_y = y + (*current_y * size);
-        float next_scaled_x = x + ((*current_x + 1) * size);
-        float next_scaled_y = y + ((*current_y + 1) * size);
+    // Compute pixel positions only once
+    int start_x = x + (*current_x * size);
+    int start_y = y + (*current_y * size);
+    int end_x = x + ((*current_x + count) * size);
+    
+    int draw_width = (int)(end_x - start_x + 0.5f);
+    int draw_height = (int)(size + 0.5f);
 
-        int draw_x = (int)scaled_x;
-        int draw_y = (int)scaled_y;
-        int draw_width = (int)(next_scaled_x - scaled_x + 0.5f);  // Avoid holes when upscaling too much
-        int draw_height = (int)(next_scaled_y - scaled_y + 0.5f); // Avoid holes when upscaling too much
+    // Ensure at least 1 pixel is drawn
+    if (draw_width <= 0) draw_width = 1;
+    if (draw_height <= 0) draw_height = 1;
 
-        if (size >= 1.0f) {
-            for (int j = 0; j < draw_height; ++j) {
-                line_callback(draw_x, draw_y + j, draw_width, blended_color);
-            }
-        } else {
-            static int last_x = -1, last_y = -1;
-            if (draw_x != last_x || draw_y != last_y) {
-                line_callback(draw_x, draw_y, 1, blended_color);
-                last_x = draw_x;
-                last_y = draw_y;
-            }
-        }
+    if (draw_width <= 0 || draw_height <= 0)
+        return;  // Avoid degenerate cases
 
-        // Go on with position
-        *current_x += 1;
-        count--;
+    // Draw only once
+    for (int j = 0; j < draw_height; ++j) {
+        line_callback(start_x, start_y + j, draw_width, blended_color);
+    }
 
-        while (*current_x >= glyph_width) {
-            *current_x -= glyph_width;
-            (*current_y)++;
-            if (*current_y >= glyph_height)
-                return;
-        }
+    // Advance position
+    *current_x += count;
+    while (*current_x >= glyph_width) {
+        *current_x -= glyph_width;
+        (*current_y)++;
+        if (*current_y >= glyph_height)
+            return;
     }
 }
 
