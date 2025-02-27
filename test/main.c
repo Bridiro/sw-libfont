@@ -13,7 +13,7 @@ typedef struct {
     SDL_Renderer *renderer;
 } SDLContext;
 
-void draw_line_fun(int x, int y, int lenght, uint32_t col) {
+void draw_line_fun(uint16_t x, uint16_t y, uint16_t lenght, uint32_t col) {
     SDL_SetRenderDrawColor(SDL_GetRenderer(SDL_GetWindowFromID(1)), col >> 16 & 0xff, col >> 8 & 0xff, col & 0xff, col >> 24 & 0xff);
     for (int i=0; i<lenght; i++) {
         SDL_RenderDrawPoint(SDL_GetRenderer(SDL_GetWindowFromID(1)), x+i, y);

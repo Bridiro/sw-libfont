@@ -16,7 +16,7 @@
 /**
  * @brief Callback used to draw pixel
  */
-typedef void (*draw_line_callback_t)(int x, int y, int lenght, uint32_t color);
+typedef void (*draw_line_callback_t)(uint16_t x, uint16_t y, uint16_t lenght, uint32_t color);
 
 /**
  * @brief Represents the alignment of the rendering of the text
