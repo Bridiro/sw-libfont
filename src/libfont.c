@@ -13,7 +13,7 @@ void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size,
                       int glyph_width, int glyph_height, 
                       int *current_x, int *current_y, uint32_t color, 
                       draw_line_callback_t line_callback) {
-    if (value == 0) {
+    if (value < 30) {
         *current_x += count;
         while (*current_x >= glyph_width) {
             *current_x -= glyph_width;
