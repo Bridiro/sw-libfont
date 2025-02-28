@@ -72,20 +72,15 @@ int main() {
         }
         SDL_SetRenderDrawColor(sdl_ctx.renderer, 0, 0, 0, 255);
         SDL_RenderClear(sdl_ctx.renderer);
-        // Pulizia della finestra (sfondo bianco)
-        // Renderizzazione del testo
-        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 0.3, draw_line_fun);
-        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 1, draw_line_fun);
-        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 1.5, draw_line_fun);
+        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 50, draw_line_fun);
+        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 100, draw_line_fun);
+        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 150, draw_line_fun);
 
-        // Presenta il rendering sullo schermo
         SDL_RenderPresent(sdl_ctx.renderer);
 
-        // Attendere un po' per vedere il risultato
         SDL_Delay(16);
     }
 
-    // Pulizia e chiusura
     SDL_DestroyRenderer(sdl_ctx.renderer);
     SDL_DestroyWindow(sdl_ctx.window);
     SDL_Quit();

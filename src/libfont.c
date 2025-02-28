@@ -9,9 +9,9 @@
 #include "libfont.h"
 #include "font.h"
 
-void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size, 
-                      int glyph_width, int glyph_height, 
-                      int *current_x, int *current_y, uint32_t color, 
+void _draw_rle_series(uint8_t count, uint8_t value, uint16_t x, uint16_t y, float multiplier, 
+                      int16_t glyph_width, int16_t glyph_height, 
+                      int16_t *current_x, int16_t *current_y, uint32_t color, 
                       draw_line_callback_t line_callback) {
     if (value < 30) {
         *current_x += count;
@@ -25,12 +25,12 @@ void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size,
     uint32_t blended_color = (color & 0x00ffffff) | ((uint32_t)value << 24);
 
     // Compute pixel positions only once
-    int start_x = x + (*current_x * size);
-    int start_y = y + (*current_y * size);
-    int end_x = x + ((*current_x + count) * size);
+    int16_t start_x = x + (*current_x * multiplier);
+    int16_t start_y = y + (*current_y * multiplier);
+    int16_t end_x = x + ((*current_x + count) * multiplier);
     
-    int draw_width = (int)(end_x - start_x + 0.5f);
-    int draw_height = (int)(size + 0.5f);
+    int16_t draw_width = (int16_t)(end_x - start_x + 0.5f);
+    int16_t draw_height = (int16_t)(multiplier + 0.5f);
 
     // Ensure at least 1 pixel is drawn
     if (draw_width <= 0) draw_width = 1;
@@ -54,15 +54,15 @@ void _draw_rle_series(uint8_t count, uint8_t value, int x, int y, float size,
     }
 }
 
-void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size, draw_line_callback_t line_callback) {
+void _render_glyph(const Glyph *glyph, uint16_t x, uint16_t y, uint32_t color, float multiplier, draw_line_callback_t line_callback) {
     const uint8_t *data = &sdf_data[glyph->offset];
     uint16_t remaining_size = glyph->size;
 
-    int glyph_width = glyph->width;
-    int glyph_height = glyph->height;
+    uint8_t glyph_width = glyph->width;
+    uint8_t glyph_height = glyph->height;
 
-    int current_x = 0;
-    int current_y = 0;
+    int16_t current_x = 0;
+    int16_t current_y = 0;
 
     while (remaining_size > 0 && current_y < glyph_height) {
         // Decode the value and run length
@@ -73,39 +73,43 @@ void _render_glyph(const Glyph *glyph, int x, int y, uint32_t color, float size,
         uint8_t count2 = *data++;
         remaining_size -= 2;
 
-        _draw_rle_series(count1, value1, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, line_callback);
-        _draw_rle_series(count2, value2, x, y, size, glyph_width, glyph_height, &current_x, &current_y, color, line_callback);
+        _draw_rle_series(count1, value1, x, y, multiplier, glyph_width, glyph_height, &current_x, &current_y, color, line_callback);
+        _draw_rle_series(count2, value2, x, y, multiplier, glyph_width, glyph_height, &current_x, &current_y, color, line_callback);
     }
 }
 
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size, draw_line_callback_t line_callback) {
+void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, uint8_t pixel_size, draw_line_callback_t line_callback) {
     if (align == CENTER) {
         // To center it just shift x half the text lenght back
-        uint16_t len = text_lenght(text, size);
+        uint16_t len = text_lenght(text, pixel_size);
         x -= len / 2;
     } else if (align == RIGHT) {
         // To align it to the right, just shift x the text lenght back
-        uint16_t len = text_lenght(text, size);
+        uint16_t len = text_lenght(text, pixel_size);
         x -= len;
     }
+    uint8_t glyph_height = glyphs[0].height;
+    float multiplier = (float)pixel_size / (float)glyph_height;
     while (*text) {
         int char_code = *text++;
         if (char_code >= 32 && char_code <= 126) {
             // Get glyph, print it and then move x for next character
             const Glyph *glyph = &glyphs[char_code - 32];
-            _render_glyph(glyph, x, y, color, size, line_callback);
-            x += glyph->width * size;
+            _render_glyph(glyph, x, y, color, multiplier, line_callback);
+            x += glyph->width * multiplier;
         }
     }
 }
 
-uint16_t text_lenght(char *text, float size) {
+uint16_t text_lenght(char *text, uint8_t pixel_size) {
     float tot = 0;
+    uint8_t glyph_height = glyphs[0].height;
+    float multiplier = (float)pixel_size / (float)glyph_height;
     while (*text) {
         int char_code = *text++;
         if (char_code >= 32 && char_code <= 126) {
             // Get width from every glyph descriptor, multiply it with size and add to tot
-            tot += (float) (&glyphs[char_code - 32])->width * size;
+            tot += (float)(&glyphs[char_code - 32])->width * multiplier;
         }
     }
     return (uint16_t) tot;

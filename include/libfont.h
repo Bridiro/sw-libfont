@@ -42,12 +42,12 @@ enum FontAlign {
  * @param color ARGB color value (alpha is ignored)
  * @param size Scale value
  */
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, float size, draw_line_callback_t line_callback);
+void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, uint8_t pixel_size, draw_line_callback_t line_callback);
 
 /**
  * @brief Calcaulate the lenght on the text in pixel
  */
-uint16_t text_lenght(char *text, float size);
+uint16_t text_lenght(char *text, uint8_t pixel_size);
 
 #if UTILITIES
 /**
