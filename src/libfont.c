@@ -78,7 +78,7 @@ void _render_glyph(const Glyph *glyph, uint16_t x, uint16_t y, uint32_t color, f
     }
 }
 
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, uint8_t pixel_size, draw_line_callback_t line_callback) {
+void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, uint16_t pixel_size, draw_line_callback_t line_callback) {
     if (align == CENTER) {
         // To center it just shift x half the text lenght back
         uint16_t len = text_lenght(text, pixel_size);
@@ -101,7 +101,7 @@ void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_
     }
 }
 
-uint16_t text_lenght(char *text, uint8_t pixel_size) {
+uint16_t text_lenght(char *text, uint16_t pixel_size) {
     float tot = 0;
     uint8_t glyph_height = glyphs[0].height;
     float multiplier = (float)pixel_size / (float)glyph_height;
