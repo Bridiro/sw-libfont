@@ -88,25 +88,22 @@ def compress_rle_4bit_paired(data):
     return compressed
 
 
-def generate_c_files(sdf_folder, output_c_folder, output_inc_folder):
+def generate_c_files(sdf_folder, output_c_folder, output_inc_folder, font_name, size):
     os.makedirs(output_c_folder, exist_ok=True)
     os.makedirs(output_inc_folder, exist_ok=True)
-    c_file_path = os.path.join(output_c_folder, "font.c")
-    h_file_path = os.path.join(output_inc_folder, "font.h")
+
+    c_file_path = os.path.join(output_c_folder, f"font_{font_name}_{size}.c")
+    h_file_path = os.path.join(output_inc_folder, f"font_{font_name}_{size}.h")
 
     with open(c_file_path, "w") as c_file, open(h_file_path, "w") as h_file:
         # Header file content
-        h_file.write("#ifndef FONT_H\n#define FONT_H\n\n#include <stdint.h>\n\n")
-        h_file.write("typedef struct {\n")
-        h_file.write("    uint32_t offset;\n")
-        h_file.write("    uint16_t size;\n")
-        h_file.write("    uint8_t width;\n    uint8_t height;\n} Glyph;\n\n")
-        h_file.write("extern const uint8_t sdf_data[];\n")
-        h_file.write("extern const Glyph glyphs[];\n\n")
-        h_file.write("#endif // FONT_H\n")
+        h_file.write(f"#ifndef FONT_{font_name.upper()}_{size}_H\n#define FONT_{font_name.upper()}_{size}_H\n\n#include <stdint.h>\n#include \"glyph.h\"\n\n")
+        h_file.write(f"extern const uint8_t sdf_data_{font_name}_{size}[];\n")
+        h_file.write(f"extern const Glyph glyphs_{font_name}_{size}[];\n\n")
+        h_file.write(f"#endif // FONT_{font_name.upper()}_{size}_H\n")
 
         # C file content
-        c_file.write("#include \"font.h\"\n\n")
+        c_file.write(f"#include \"font_{font_name}_{size}.h\"\n\n")
 
         sdf_data = []
         glyph_metadata = []
@@ -124,23 +121,60 @@ def generate_c_files(sdf_folder, output_c_folder, output_inc_folder):
                 glyph_metadata.append((offset, len(compressed) * 2, width, height))
 
         # Write SDF data as a single array
-        c_file.write("const uint8_t sdf_data[] = {\n")
+        c_file.write(f"const uint8_t sdf_data_{font_name}_{size}[] = {{\n")
         for i, value in enumerate(sdf_data):
             c_file.write(f"{value}, ")
             if (i + 1) % 12 == 0:
                 c_file.write("\n")
         c_file.write("};\n\n")
 
-        c_file.write("const Glyph glyphs[] = {\n")
+        c_file.write(f"const Glyph glyphs_{font_name}_{size}[] = {{\n")
         for offset, size, width, height in glyph_metadata:
             c_file.write(f"    {{ {offset}, {size}, {width}, {height} }},\n")
         c_file.write("};\n")
+
+
+def generate_font_h(output_inc_folder):
+    font_definitions = []
+    font_entries = []
+    enum_entries = []
+
+    for file_name in os.listdir(output_inc_folder):
+        match = re.match(r'font_(\w+)_(\d+)\.h', file_name)
+        if match:
+            font_name = match.group(1)
+            font_size = match.group(2)
+            font_definitions.append(f"#include \"{file_name}\"")
+            font_entries.append(f"    {{ {font_size}, sdf_data_{font_name}_{font_size}, glyphs_{font_name}_{font_size} }},")
+            enum_entries.append(f"    {font_name.upper()}_{font_size},\n")
+
+    h_file_path = os.path.join(output_inc_folder, "font.h")
+    with open(h_file_path, "w") as h_file:
+        h_file.write("#ifndef FONT_H\n#define FONT_H\n\n#include <stdint.h>\n\n")
+        h_file.write("\n".join(font_definitions) + "\n\n")
+
+        h_file.write("typedef struct {\n")
+        h_file.write("    uint8_t size;\n")
+        h_file.write("    const uint8_t* sdf_data;\n")
+        h_file.write("    const Glyph* glyphs;\n")
+        h_file.write("} Font;\n\n")
+
+        h_file.write("typedef enum {\n")
+        h_file.write("".join(enum_entries))
+        h_file.write("} FontName;\n\n")
+
+        h_file.write("static const Font fonts[] = {\n")
+        h_file.write("\n".join(font_entries) + "\n")
+        h_file.write("};\n\n")
+
+        h_file.write("#endif // FONT_H\n")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate bitmap, SDF file, C file and Header file.")
     parser.add_argument("--font", required=True, help="TTF file.")
     parser.add_argument("--size", type=int, default=64, help="Size of bitmaps (default: 64).")
+    parser.add_argument("--font_name", required=True, help="Name of the font")
     parser.add_argument("--edge_down", default=0.35, help="Lower edge of the smoothstep function.")
     parser.add_argument("--edge_up", default=0.75, help="Higher edge of the smoothstep function.")
     parser.add_argument("--bitmap_folder", default="bitmaps", help="Folder which contains the generated bitmaps.")
@@ -156,7 +190,10 @@ def main():
     generate_sdf(args.bitmap_folder, args.sdf_folder, float(args.edge_down), float(args.edge_up))
 
     print("C files generation...")
-    generate_c_files(args.sdf_folder, args.c_folder, args.inc_folder)
+    generate_c_files(args.sdf_folder, args.c_folder, args.inc_folder, args.font_name, args.size)
+
+    print("Updating font.h")
+    generate_font_h(args.inc_folder)
 
     print("Process completed!")
 

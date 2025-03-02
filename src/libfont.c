@@ -7,7 +7,6 @@
  */
 
 #include "libfont.h"
-#include "font.h"
 
 void _draw_rle_series(uint8_t count, uint8_t value, uint16_t x, uint16_t y, float multiplier, 
                       int16_t glyph_width, int16_t glyph_height, 
@@ -54,8 +53,8 @@ void _draw_rle_series(uint8_t count, uint8_t value, uint16_t x, uint16_t y, floa
     }
 }
 
-void _render_glyph(const Glyph *glyph, uint16_t x, uint16_t y, uint32_t color, float multiplier, draw_line_callback_t line_callback) {
-    const uint8_t *data = &sdf_data[glyph->offset];
+void _render_glyph(const Glyph *glyph, FontName font, uint16_t x, uint16_t y, uint32_t color, float multiplier, draw_line_callback_t line_callback) {
+    const uint8_t *data = &fonts[font].sdf_data[glyph->offset];
     uint16_t remaining_size = glyph->size;
 
     uint8_t glyph_width = glyph->width;
@@ -78,38 +77,38 @@ void _render_glyph(const Glyph *glyph, uint16_t x, uint16_t y, uint32_t color, f
     }
 }
 
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, uint16_t pixel_size, draw_line_callback_t line_callback) {
-    if (align == CENTER) {
+void draw_text(uint16_t x, uint16_t y, FontAlign align, FontName font, char *text, uint32_t color, uint16_t pixel_size, draw_line_callback_t line_callback) {
+    if (align == FONT_ALIGN_CENTER) {
         // To center it just shift x half the text lenght back
-        uint16_t len = text_lenght(text, pixel_size);
+        uint16_t len = text_lenght(text, pixel_size, font);
         x -= len / 2;
-    } else if (align == RIGHT) {
+    } else if (align == FONT_ALIGN_RIGHT) {
         // To align it to the right, just shift x the text lenght back
-        uint16_t len = text_lenght(text, pixel_size);
+        uint16_t len = text_lenght(text, pixel_size, font);
         x -= len;
     }
-    uint8_t glyph_height = glyphs[0].height;
+    uint8_t glyph_height = fonts[font].size;
     float multiplier = (float)pixel_size / (float)glyph_height;
     while (*text) {
         int char_code = *text++;
         if (char_code >= 32 && char_code <= 126) {
             // Get glyph, print it and then move x for next character
-            const Glyph *glyph = &glyphs[char_code - 32];
-            _render_glyph(glyph, x, y, color, multiplier, line_callback);
+            const Glyph *glyph = &fonts[font].glyphs[char_code - 32];
+            _render_glyph(glyph, font, x, y, color, multiplier, line_callback);
             x += glyph->width * multiplier;
         }
     }
 }
 
-uint16_t text_lenght(char *text, uint16_t pixel_size) {
+uint16_t text_lenght(char *text, uint16_t pixel_size, FontName font) {
     float tot = 0;
-    uint8_t glyph_height = glyphs[0].height;
+    uint8_t glyph_height = fonts[font].glyphs[0].height;
     float multiplier = (float)pixel_size / (float)glyph_height;
     while (*text) {
         int char_code = *text++;
         if (char_code >= 32 && char_code <= 126) {
             // Get width from every glyph descriptor, multiply it with size and add to tot
-            tot += (float)(&glyphs[char_code - 32])->width * multiplier;
+            tot += (float)(&fonts[font].glyphs[char_code - 32])->width * multiplier;
         }
     }
     return (uint16_t) tot;

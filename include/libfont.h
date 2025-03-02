@@ -10,6 +10,7 @@
 #define TEXT_H
 
 #include <stdint.h>
+#include "font.h"
 
 #define UTILITIES 0
 
@@ -22,15 +23,15 @@ typedef void (*draw_line_callback_t)(uint16_t x, uint16_t y, uint16_t lenght, ui
  * @brief Represents the alignment of the rendering of the text
  *
  * @details
- *     - LEFT means that the text rendering will start from Coords.x to the left
- *     - CENTER means that the text rendering will be centered to Coords.x
- *     - RIGHT means that the text rendering will end at Coords.x
+ *     - FONT_ALIGN_LEFT means that the text rendering will start from Coords.x to the left
+ *     - FONT_ALIGN_CENTER means that the text rendering will be centered to Coords.x
+ *     - FONT_ALIGN_RIGHT means that the text rendering will end at Coords.x
  */
-enum FontAlign {
-    LEFT,
-    CENTER,
-    RIGHT
-};
+typedef enum {
+    FONT_ALIGN_LEFT,
+    FONT_ALIGN_CENTER,
+    FONT_ALIGN_RIGHT
+} FontAlign;
 
 /**
  * @brief Draws text
@@ -42,12 +43,12 @@ enum FontAlign {
  * @param color ARGB color value (alpha is ignored)
  * @param size Scale value
  */
-void draw_text(uint16_t x, uint16_t y, enum FontAlign align, char *text, uint32_t color, uint16_t pixel_size, draw_line_callback_t line_callback);
+void draw_text(uint16_t x, uint16_t y, FontAlign align, FontName font, char *text, uint32_t color, uint16_t pixel_size, draw_line_callback_t line_callback);
 
 /**
  * @brief Calcaulate the lenght on the text in pixel
  */
-uint16_t text_lenght(char *text, uint16_t pixel_size);
+uint16_t text_lenght(char *text, uint16_t pixel_size, FontName font);
 
 #if UTILITIES
 /**

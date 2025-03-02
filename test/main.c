@@ -24,8 +24,8 @@ int main() {
     int size=0;
     int memory_occupied = 0;
     for (int i=0; i<94; i++) {
-        size += glyphs[i].height * glyphs[i].width;
-        memory_occupied += glyphs[i].size;
+        size += fonts[0].glyphs[i].height * fonts[0].glyphs[i].width;
+        memory_occupied += fonts[0].glyphs[i].size;
     }
     printf("Size of font: %d\n", size);
     printf("Memory occupied: %d bytes\n", memory_occupied);
@@ -72,9 +72,9 @@ int main() {
         }
         SDL_SetRenderDrawColor(sdl_ctx.renderer, 0, 0, 0, 255);
         SDL_RenderClear(sdl_ctx.renderer);
-        draw_text(50, 50, LEFT, "CIAO, SDL", 0xffffffff, 50, draw_line_fun);
-        draw_text(50, 80, LEFT, "Funziona", 0xffffffff, 100, draw_line_fun);
-        draw_text(50, 160, LEFT, "Maybe", 0xffffffff, 150, draw_line_fun);
+        draw_text(50, 50, FONT_ALIGN_LEFT, KONEXY_110, "CIAO, SDL", 0xffffffff, 50, draw_line_fun);
+        draw_text(50, 90, FONT_ALIGN_LEFT, SUPERCHARGE_90, "Funziona", 0xffffffff, 90, draw_line_fun);
+        draw_text(50, 160, FONT_ALIGN_LEFT, KONEXY_110, "Maybe", 0xffffffff, 140, draw_line_fun);
 
         SDL_RenderPresent(sdl_ctx.renderer);
 
