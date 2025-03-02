@@ -87,7 +87,7 @@ void draw_text(uint16_t x, uint16_t y, FontAlign align, FontName font, char *tex
         uint16_t len = text_lenght(text, pixel_size, font);
         x -= len;
     }
-    uint8_t glyph_height = fonts[font].size;
+    uint8_t glyph_height = fonts[font].glyphs[0].height;
     float multiplier = (float)pixel_size / (float)glyph_height;
     while (*text) {
         int char_code = *text++;
