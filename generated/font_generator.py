@@ -5,15 +5,17 @@ import numpy as np
 from scipy.ndimage import distance_transform_edt
 import re
 
+
 def extract_number(filename):
     match = re.search(r'(\d+)', filename)
     return int(match.group(1)) if match else 0
 
+
 def generate_bitmaps_fixed(font_path, size, output_folder):
     font = ImageFont.truetype(font_path, size)
-    
+
     os.makedirs(output_folder, exist_ok=True)
-    
+
     ascent, descent = font.getmetrics()
     total_height = ascent + descent
 
@@ -32,7 +34,7 @@ def generate_bitmaps_fixed(font_path, size, output_folder):
 
         output_path = os.path.join(output_folder, f"char_{char_code}.png")
         image.save(output_path)
-        
+
 
 def generate_sdf(bitmap_folder, output_folder, edge_down, edge_up):
     os.makedirs(output_folder, exist_ok=True)
@@ -40,7 +42,6 @@ def generate_sdf(bitmap_folder, output_folder, edge_down, edge_up):
     def smoothstep(edge0, edge1, x):
         t = np.clip((x - edge0) / (edge1 - edge0), 0, 1)
         return t * t * (3 - 2 * t)
-
 
     def compute_sdf(bitmap):
         inside = distance_transform_edt(bitmap)
@@ -52,11 +53,13 @@ def generate_sdf(bitmap_folder, output_folder, edge_down, edge_up):
 
     for file_name in os.listdir(bitmap_folder):
         if file_name.endswith(".png"):
-            image = Image.open(os.path.join(bitmap_folder, file_name)).convert("L")
+            image = Image.open(os.path.join(
+                bitmap_folder, file_name)).convert("L")
             bitmap = np.array(image) > 128
             sdf = compute_sdf(bitmap)
             sdf_image = Image.fromarray(sdf)
-            sdf_image.save(os.path.join(output_folder, file_name.replace("char_", "sdf_")))
+            sdf_image.save(os.path.join(
+                output_folder, file_name.replace("char_", "sdf_")))
 
 
 def compress_rle_4bit_paired(data):
@@ -97,7 +100,8 @@ def generate_c_files(sdf_folder, output_c_folder, output_inc_folder, font_name, 
 
     with open(c_file_path, "w") as c_file, open(h_file_path, "w") as h_file:
         # Header file content
-        h_file.write(f"#ifndef FONT_{font_name.upper()}_{size}_H\n#define FONT_{font_name.upper()}_{size}_H\n\n#include <stdint.h>\n#include \"glyph.h\"\n\n")
+        h_file.write(
+            f"#ifndef FONT_{font_name.upper()}_{size}_H\n#define FONT_{font_name.upper()}_{size}_H\n\n#include <stdint.h>\n#include \"glyph.h\"\n\n")
         h_file.write(f"extern const uint8_t sdf_data_{font_name}_{size}[];\n")
         h_file.write(f"extern const Glyph glyphs_{font_name}_{size}[];\n\n")
         h_file.write(f"#endif // FONT_{font_name.upper()}_{size}_H\n")
@@ -110,7 +114,8 @@ def generate_c_files(sdf_folder, output_c_folder, output_inc_folder, font_name, 
 
         for file_name in sorted(os.listdir(sdf_folder), key=extract_number):
             if file_name.endswith(".png"):
-                image = Image.open(os.path.join(sdf_folder, file_name)).convert("L")
+                image = Image.open(os.path.join(
+                    sdf_folder, file_name)).convert("L")
                 width, height = image.size
                 pixels = list(image.getdata())
                 compressed = compress_rle_4bit_paired(pixels)
@@ -118,7 +123,8 @@ def generate_c_files(sdf_folder, output_c_folder, output_inc_folder, font_name, 
 
                 # Append SDF data
                 sdf_data.extend([item for pair in compressed for item in pair])
-                glyph_metadata.append((offset, len(compressed) * 2, width, height))
+                glyph_metadata.append(
+                    (offset, len(compressed) * 2, width, height))
 
         # Write SDF data as a single array
         c_file.write(f"const uint8_t sdf_data_{font_name}_{size}[] = {{\n")
@@ -145,12 +151,14 @@ def generate_font_h(output_inc_folder):
             font_name = match.group(1)
             font_size = match.group(2)
             font_definitions.append(f"#include \"{file_name}\"")
-            font_entries.append(f"    {{ {font_size}, sdf_data_{font_name}_{font_size}, glyphs_{font_name}_{font_size} }},")
+            font_entries.append(
+                f"    {{ {font_size}, sdf_data_{font_name}_{font_size}, glyphs_{font_name}_{font_size} }},")
             enum_entries.append(f"    {font_name.upper()}_{font_size},\n")
 
     h_file_path = os.path.join(output_inc_folder, "font.h")
     with open(h_file_path, "w") as h_file:
-        h_file.write("#ifndef FONT_H\n#define FONT_H\n\n#include <stdint.h>\n\n")
+        h_file.write(
+            "#ifndef FONT_H\n#define FONT_H\n\n#include <stdint.h>\n\n")
         h_file.write("\n".join(font_definitions) + "\n\n")
 
         h_file.write("typedef struct {\n")
@@ -171,32 +179,42 @@ def generate_font_h(output_inc_folder):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate bitmap, SDF file, C file and Header file.")
+    parser = argparse.ArgumentParser(
+        description="Generate bitmap, SDF file, C file and Header file.")
     parser.add_argument("--font", required=True, help="TTF file.")
-    parser.add_argument("--size", type=int, default=64, help="Size of bitmaps (default: 64).")
+    parser.add_argument("--size", type=int, default=64,
+                        help="Size of bitmaps (default: 64).")
     parser.add_argument("--font_name", required=True, help="Name of the font")
-    parser.add_argument("--edge_down", default=0.35, help="Lower edge of the smoothstep function.")
-    parser.add_argument("--edge_up", default=0.75, help="Higher edge of the smoothstep function.")
-    parser.add_argument("--bitmap_folder", default="bitmaps", help="Folder which contains the generated bitmaps.")
-    parser.add_argument("--sdf_folder", default="sdf_fonts", help="Folder which contains the generated SDF.")
-    parser.add_argument("--c_folder", default="../src", help="Folder which contains the C file.")
-    parser.add_argument("--inc_folder", default="../include", help="Folder which contains the include file.")
+    parser.add_argument("--edge_down", default=0.35,
+                        help="Lower edge of the smoothstep function.")
+    parser.add_argument("--edge_up", default=0.75,
+                        help="Higher edge of the smoothstep function.")
+    parser.add_argument("--bitmap_folder", default="bitmaps",
+                        help="Folder which contains the generated bitmaps.")
+    parser.add_argument("--sdf_folder", default="sdf_fonts",
+                        help="Folder which contains the generated SDF.")
+    parser.add_argument("--c_folder", default="../src",
+                        help="Folder which contains the C file.")
+    parser.add_argument("--inc_folder", default="../include",
+                        help="Folder which contains the include file.")
     args = parser.parse_args()
 
     print("Bitmap generation...")
     generate_bitmaps_fixed(args.font, args.size, args.bitmap_folder)
 
     print("SDF generation...")
-    generate_sdf(args.bitmap_folder, args.sdf_folder, float(args.edge_down), float(args.edge_up))
+    generate_sdf(args.bitmap_folder, args.sdf_folder,
+                 float(args.edge_down), float(args.edge_up))
 
     print("C files generation...")
-    generate_c_files(args.sdf_folder, args.c_folder, args.inc_folder, args.font_name, args.size)
+    generate_c_files(args.sdf_folder, args.c_folder,
+                     args.inc_folder, args.font_name, args.size)
 
     print("Updating font.h")
     generate_font_h(args.inc_folder)
 
     print("Process completed!")
 
+
 if __name__ == "__main__":
     main()
-
