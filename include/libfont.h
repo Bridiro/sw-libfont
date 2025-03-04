@@ -43,12 +43,12 @@ typedef enum {
  * @param color ARGB color value (alpha is ignored)
  * @param size Scale value
  */
-void draw_text(uint16_t x, uint16_t y, FontAlign align, FontName font, char *text, uint32_t color, uint16_t pixel_size, draw_line_callback_t line_callback);
+void draw_text(uint16_t x, uint16_t y, FontAlign align, FontName font, const char *text, uint32_t color, uint16_t pixel_size, draw_line_callback_t line_callback);
 
 /**
  * @brief Calcaulate the lenght on the text in pixel
  */
-uint16_t text_lenght(char *text, uint16_t pixel_size, FontName font);
+uint16_t text_length(const char *text, uint16_t pixel_size, FontName font);
 
 #if UTILITIES
 /**
