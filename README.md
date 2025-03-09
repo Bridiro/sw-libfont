@@ -54,7 +54,7 @@ FontAlign align = FONT_ALIGN_CENTER;    // text centering on the point
 FontName font = KONEXY_100;             // Font name (check font.c)
 char *text = "Hello, World!";           // text to render
 uint32_t color = 0xffffffff;            // which color to use to draw the text
-float size = 1.0f;                      // scale factor
+uint16_t size = 80;                     // font size in pixels
 
 draw_text(x, y, align, font, text, color, size, draw_line_callback);
 ```
