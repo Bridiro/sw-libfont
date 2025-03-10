@@ -48,8 +48,8 @@ void _render_glyph(const Glyph* glyph, FontName font, uint16_t x, uint16_t y, ui
     const uint8_t* data = &fonts[font].sdf_data[glyph->offset];
     uint16_t remaining_size = glyph->size;
 
-    uint8_t glyph_width = glyph->width;
-    uint8_t glyph_height = glyph->height;
+    uint16_t glyph_width = glyph->width;
+    uint16_t glyph_height = glyph->height;
 
     int16_t current_x = 0;
     int16_t current_y = 0;

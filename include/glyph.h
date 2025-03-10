@@ -6,8 +6,8 @@
 typedef struct {
     uint32_t offset;
     uint16_t size;
-    uint8_t width;
-    uint8_t height;
+    uint16_t width;
+    uint16_t height;
 } Glyph;
 
 #endif // GLYPH_H

@@ -72,9 +72,9 @@ int main() {
         }
         SDL_SetRenderDrawColor(sdl_ctx.renderer, 0, 0, 0, 255);
         SDL_RenderClear(sdl_ctx.renderer);
-        draw_text(50, 50, FONT_ALIGN_LEFT, KONEXY_110, "CIAO, SDL", 0xffffffff, 50, draw_line_fun);
-        draw_text(50, 90, FONT_ALIGN_LEFT, KONEXY_110, "Funziona", 0xffffffff, 100, draw_line_fun);
-        draw_text(50, 160, FONT_ALIGN_LEFT, KONEXY_110, "Maybe", 0xffffffff, 140, draw_line_fun);
+        draw_text(50, 50, FONT_ALIGN_LEFT, KONEXY_200, "CIAO, SDL", 0xffffffff, 50, draw_line_fun);
+        draw_text(50, 90, FONT_ALIGN_LEFT, KONEXY_200, "Funziona", 0xffffffff, 100, draw_line_fun);
+        draw_text(50, 160, FONT_ALIGN_LEFT, KONEXY_200, "Maybe", 0xffffffff, 140, draw_line_fun);
 
         SDL_RenderPresent(sdl_ctx.renderer);
 
